@@ -22,8 +22,6 @@ import io.element.android.features.home.impl.search.RoomListSearchEvent
 import io.element.android.features.home.impl.search.RoomListSearchState
 import io.element.android.features.home.impl.search.aGlobalSearchState
 import io.element.android.features.home.impl.search.aRoomListSearchState
-import io.element.android.features.home.impl.spacefilters.SpaceFiltersState
-import io.element.android.features.home.impl.spacefilters.aDisabledSpaceFiltersState
 import io.element.android.features.invite.api.SeenInvitesStore
 import io.element.android.features.invite.api.acceptdecline.AcceptDeclineInviteEvent
 import io.element.android.features.invite.api.acceptdecline.AcceptDeclineInviteState
@@ -657,7 +655,6 @@ class RoomListPresenterTest {
         analyticsService: AnalyticsService = FakeAnalyticsService(),
         filtersPresenter: Presenter<RoomListFiltersState> = Presenter { aRoomListFiltersState() },
         searchPresenter: Presenter<RoomListSearchState> = Presenter { aRoomListSearchState() },
-        spaceFiltersPresenter: Presenter<SpaceFiltersState> = Presenter { aDisabledSpaceFiltersState() },
         acceptDeclineInvitePresenter: Presenter<AcceptDeclineInviteState> = Presenter { anAcceptDeclineInviteState() },
         notificationCleaner: NotificationCleaner = FakeNotificationCleaner(),
         seenInvitesStore: SeenInvitesStore = InMemorySeenInvitesStore(),
@@ -682,7 +679,6 @@ class RoomListPresenterTest {
         searchPresenter = searchPresenter,
         globalSearchPresenter = { aGlobalSearchState() },
         filtersPresenter = filtersPresenter,
-        spaceFiltersPresenter = spaceFiltersPresenter,
         analyticsService = analyticsService,
         acceptDeclineInvitePresenter = acceptDeclineInvitePresenter,
         fullScreenIntentPermissionsPresenter = { aFullScreenIntentPermissionsState() },

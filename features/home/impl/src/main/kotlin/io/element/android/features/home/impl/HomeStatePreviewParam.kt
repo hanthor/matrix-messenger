@@ -14,8 +14,6 @@ import io.element.android.features.home.impl.roomlist.RoomListStatePreviewParam
 import io.element.android.features.home.impl.roomlist.aRoomListState
 import io.element.android.features.home.impl.roomlist.aRoomsContentState
 import io.element.android.features.home.impl.roomlist.generateRoomListRoomSummaryList
-import io.element.android.features.home.impl.spaces.HomeSpacesState
-import io.element.android.features.home.impl.spaces.aHomeSpacesState
 import io.element.android.features.logout.api.direct.DirectLogoutState
 import io.element.android.features.logout.api.direct.aDirectLogoutState
 import io.element.android.libraries.designsystem.utils.snackbar.SnackbarMessage
@@ -32,25 +30,14 @@ open class HomeStatePreviewParam : PreviewParameterProvider<HomeState> {
             aHomeState(snackbarMessage = SnackbarMessage(CommonStrings.common_verification_complete)),
             aHomeState(
                 roomListState = aRoomListState(
-                    // Add more rooms to see the blur effect under the NavigationBar
                     contentState = aRoomsContentState(
                         summaries = generateRoomListRoomSummaryList(),
                     )
                 ),
-                // For the bottom nav bar to be visible in the preview, the user must be member of at least one space
-                homeSpacesState = aHomeSpacesState(),
-            ),
-            aHomeState(
-                currentHomeNavigationBarItem = HomeNavigationBarItem.Spaces,
             ),
         ) + RoomListStatePreviewParam().values.map {
             aHomeState(roomListState = it)
-        } + aHomeState(
-            currentHomeNavigationBarItem = HomeNavigationBarItem.Spaces,
-            homeSpacesState = aHomeSpacesState(
-                spaceRooms = emptyList(),
-            ),
-        )
+        }
 }
 
 internal fun aHomeState(
@@ -59,9 +46,7 @@ internal fun aHomeState(
     showAvatarIndicator: Boolean = false,
     hasNetworkConnection: Boolean = true,
     snackbarMessage: SnackbarMessage? = null,
-    currentHomeNavigationBarItem: HomeNavigationBarItem = HomeNavigationBarItem.Chats,
     roomListState: RoomListState = aRoomListState(),
-    homeSpacesState: HomeSpacesState = aHomeSpacesState(),
     canReportBug: Boolean = true,
     directLogoutState: DirectLogoutState = aDirectLogoutState(),
     eventSink: (HomeEvent) -> Unit = {}
@@ -69,11 +54,10 @@ internal fun aHomeState(
     currentUserAndNeighbors = currentUserAndNeighbors.toImmutableList(),
     showAvatarIndicator = showAvatarIndicator,
     hasNetworkConnection = hasNetworkConnection,
+    roomListState = roomListState,
     snackbarMessage = snackbarMessage,
     canReportBug = canReportBug,
     directLogoutState = directLogoutState,
-    currentHomeNavigationBarItem = currentHomeNavigationBarItem,
-    roomListState = roomListState,
-    homeSpacesState = homeSpacesState,
     eventSink = eventSink,
 )
+

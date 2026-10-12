@@ -47,7 +47,6 @@ class DefaultHomeEntryPointTest : RobolectricTest() {
         val callback = object : HomeEntryPoint.Callback {
             override fun navigateToRoom(roomId: RoomId, eventId: EventId?, joinedRoom: JoinedRoom?) = lambdaError()
             override fun navigateToCreateRoom() = lambdaError()
-            override fun navigateToCreateSpace() = lambdaError()
             override fun navigateToSettings() = lambdaError()
             override fun navigateToSetUpRecovery() = lambdaError()
             override fun navigateToEnterRecoveryKey() = lambdaError()

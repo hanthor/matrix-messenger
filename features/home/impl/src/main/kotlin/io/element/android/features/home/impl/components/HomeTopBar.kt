@@ -26,7 +26,6 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.pager.VerticalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.minimumInteractiveComponentSize
@@ -60,15 +59,10 @@ import androidx.compose.ui.unit.dp
 import io.element.android.appconfig.RoomListConfig
 import io.element.android.compound.theme.ElementTheme
 import io.element.android.compound.tokens.generated.CompoundIcons
-import io.element.android.features.home.impl.HomeNavigationBarItem
 import io.element.android.features.home.impl.R
 import io.element.android.features.home.impl.filters.RoomListFiltersState
 import io.element.android.features.home.impl.filters.RoomListFiltersView
 import io.element.android.features.home.impl.filters.aRoomListFiltersState
-import io.element.android.features.home.impl.spacefilters.SpaceFiltersEvent
-import io.element.android.features.home.impl.spacefilters.SpaceFiltersState
-import io.element.android.features.home.impl.spacefilters.aSelectedSpaceFiltersState
-import io.element.android.features.home.impl.spacefilters.anUnselectedSpaceFiltersState
 import io.element.android.libraries.designsystem.atomic.atoms.RedIndicatorAtom
 import io.element.android.libraries.designsystem.components.TopAppBarScrollBehaviorLayout
 import io.element.android.libraries.designsystem.components.avatar.Avatar
@@ -103,7 +97,6 @@ import kotlinx.collections.immutable.toImmutableList
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeTopBar(
-    selectedNavigationItem: HomeNavigationBarItem,
     currentUserAndNeighbors: ImmutableList<MatrixUser>,
     showAvatarIndicator: Boolean,
     areSearchResultsDisplayed: Boolean,
@@ -115,7 +108,6 @@ fun HomeTopBar(
     canReportBug: Boolean,
     displayFilters: Boolean,
     filtersState: RoomListFiltersState,
-    spaceFiltersState: SpaceFiltersState,
     modifier: Modifier = Modifier,
 ) {
     val contentPadding = WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal).asPaddingValues()
@@ -132,30 +124,19 @@ fun HomeTopBar(
                 scrolledContainerColor = Color.Transparent,
             ),
             title = {
-                val displayTitle = when (selectedNavigationItem) {
-                    HomeNavigationBarItem.Chats -> {
-                        when (spaceFiltersState) {
-                            is SpaceFiltersState.Selected -> spaceFiltersState.selectedFilter.spaceRoom.displayName
-                            else -> stringResource(selectedNavigationItem.labelRes)
-                        }
-                    }
-                    HomeNavigationBarItem.Spaces -> null
-                }
-                displayTitle?.let {
-                    val style = when (spaceFiltersState) {
-                        // Space name
-                        is SpaceFiltersState.Selected -> ElementTheme.typography.fontHeadingSmMedium
-                        // "Chats"
-                        else -> ElementTheme.typography.fontHeadingLgBold
-                    }
-                    AdaptativeTitle(
-                        title = displayTitle,
-                        style = style,
-                        twoLinesStyle = ElementTheme.typography.fontHeadingSmMedium,
-                    )
-                }
+                AdaptativeTitle(
+                    title = stringResource(R.string.send_home_title),
+                    style = ElementTheme.typography.fontHeadingLgBold,
+                    twoLinesStyle = ElementTheme.typography.fontHeadingSmMedium,
+                )
             },
-            navigationIcon = {
+            navigationIcon = {},
+            actions = {
+                RoomListMenuItems(
+                    onToggleSearch = onToggleSearch,
+                    onMenuActionClick = onMenuActionClick,
+                    canReportBug = canReportBug,
+                )
                 NavigationIcon(
                     currentUserAndNeighbors = currentUserAndNeighbors,
                     showAvatarIndicator = showAvatarIndicator,
@@ -163,21 +144,8 @@ fun HomeTopBar(
                     onClick = onOpenSettings,
                 )
             },
-            actions = {
-                if (selectedNavigationItem == HomeNavigationBarItem.Chats) {
-                    RoomListMenuItems(
-                        onToggleSearch = onToggleSearch,
-                        onMenuActionClick = onMenuActionClick,
-                        canReportBug = canReportBug,
-                        spaceFiltersState = spaceFiltersState,
-                    )
-                }
-            },
-            // We want a 16dp left padding for the navigationIcon :
-            // 4dp from default TopAppBarHorizontalPadding
-            // 8dp from AccountIcon default padding (48dp touch target around 32dp avatar)
-            // 4dp extra padding using left insets
-            windowInsets = WindowInsets(left = 4.dp),
+            // Keep the trailing account action clear of the screen edge.
+            windowInsets = WindowInsets(right = 4.dp),
         )
         if (displayFilters) {
             TopAppBarScrollBehaviorLayout(scrollBehavior = scrollBehavior) {
@@ -197,7 +165,6 @@ private fun RowScope.RoomListMenuItems(
     onToggleSearch: () -> Unit,
     onMenuActionClick: (RoomListMenuAction) -> Unit,
     canReportBug: Boolean,
-    spaceFiltersState: SpaceFiltersState,
 ) {
     IconButton(
         onClick = onToggleSearch,
@@ -207,7 +174,6 @@ private fun RowScope.RoomListMenuItems(
             contentDescription = stringResource(CommonStrings.action_search),
         )
     }
-    SpaceFilterButton(spaceFiltersState = spaceFiltersState)
     if (RoomListConfig.HAS_DROP_DOWN_MENU) {
         var showMenu by remember { mutableStateOf(false) }
         IconButton(
@@ -258,38 +224,6 @@ private fun RowScope.RoomListMenuItems(
     }
 }
 
-@Composable
-private fun SpaceFilterButton(
-    spaceFiltersState: SpaceFiltersState,
-) {
-    if (spaceFiltersState == SpaceFiltersState.Disabled) return
-
-    fun onClick() {
-        when (spaceFiltersState) {
-            is SpaceFiltersState.Unselected -> spaceFiltersState.eventSink(SpaceFiltersEvent.Unselected.ShowFilters)
-            is SpaceFiltersState.Selected -> spaceFiltersState.eventSink(SpaceFiltersEvent.Selected.ClearSelection)
-            else -> Unit
-        }
-    }
-
-    val isSelected = spaceFiltersState is SpaceFiltersState.Selected
-    IconButton(
-        onClick = ::onClick,
-        colors = if (isSelected) {
-            IconButtonDefaults.iconButtonColors(
-                containerColor = ElementTheme.colors.bgActionPrimaryRest,
-                contentColor = ElementTheme.colors.iconOnSolidPrimary,
-            )
-        } else {
-            IconButtonDefaults.iconButtonColors()
-        },
-    ) {
-        Icon(
-            imageVector = CompoundIcons.Filter(),
-            contentDescription = stringResource(R.string.screen_roomlist_your_spaces),
-        )
-    }
-}
 
 @Composable
 private fun NavigationIcon(
@@ -454,7 +388,6 @@ private fun StatusEmojiBadge(
 @Composable
 internal fun HomeTopBarPreview() = ElementPreview {
     HomeTopBar(
-        selectedNavigationItem = HomeNavigationBarItem.Chats,
         currentUserAndNeighbors = persistentListOf(aMatrixUser(id = "@id:domain", displayName = USER_NAME_ALICE)),
         showAvatarIndicator = false,
         areSearchResultsDisplayed = false,
@@ -465,49 +398,6 @@ internal fun HomeTopBarPreview() = ElementPreview {
         canReportBug = true,
         displayFilters = true,
         filtersState = aRoomListFiltersState(),
-        spaceFiltersState = anUnselectedSpaceFiltersState(),
-        onMenuActionClick = {},
-    )
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@PreviewsDayNight
-@Composable
-internal fun HomeTopBarSpaceFiltersSelectedPreview() = ElementPreview {
-    HomeTopBar(
-        selectedNavigationItem = HomeNavigationBarItem.Chats,
-        currentUserAndNeighbors = persistentListOf(aMatrixUser(id = "@id:domain", displayName = USER_NAME_ALICE)),
-        showAvatarIndicator = false,
-        areSearchResultsDisplayed = false,
-        scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState()),
-        onOpenSettings = {},
-        onAccountSwitch = {},
-        onToggleSearch = {},
-        canReportBug = true,
-        displayFilters = true,
-        filtersState = aRoomListFiltersState(),
-        spaceFiltersState = aSelectedSpaceFiltersState(),
-        onMenuActionClick = {},
-    )
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@PreviewsDayNight
-@Composable
-internal fun HomeTopBarSpacesPreview() = ElementPreview {
-    HomeTopBar(
-        selectedNavigationItem = HomeNavigationBarItem.Spaces,
-        currentUserAndNeighbors = persistentListOf(aMatrixUser(id = "@id:domain", displayName = USER_NAME_ALICE)),
-        showAvatarIndicator = false,
-        areSearchResultsDisplayed = false,
-        scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState()),
-        onOpenSettings = {},
-        onAccountSwitch = {},
-        onToggleSearch = {},
-        canReportBug = true,
-        displayFilters = false,
-        filtersState = aRoomListFiltersState(),
-        spaceFiltersState = anUnselectedSpaceFiltersState(),
         onMenuActionClick = {},
     )
 }
@@ -517,7 +407,6 @@ internal fun HomeTopBarSpacesPreview() = ElementPreview {
 @Composable
 internal fun HomeTopBarWithIndicatorPreview() = ElementPreview {
     HomeTopBar(
-        selectedNavigationItem = HomeNavigationBarItem.Chats,
         currentUserAndNeighbors = persistentListOf(aMatrixUser(id = "@id:domain", displayName = USER_NAME_ALICE)),
         showAvatarIndicator = true,
         areSearchResultsDisplayed = false,
@@ -528,7 +417,6 @@ internal fun HomeTopBarWithIndicatorPreview() = ElementPreview {
         canReportBug = true,
         displayFilters = true,
         filtersState = aRoomListFiltersState(),
-        spaceFiltersState = anUnselectedSpaceFiltersState(),
         onMenuActionClick = {},
     )
 }
@@ -538,7 +426,6 @@ internal fun HomeTopBarWithIndicatorPreview() = ElementPreview {
 @Composable
 internal fun HomeTopBarWithStatusPreview() = ElementPreview {
     HomeTopBar(
-        selectedNavigationItem = HomeNavigationBarItem.Chats,
         currentUserAndNeighbors = persistentListOf(
             aMatrixUser(
                 id = "@id:domain",
@@ -555,7 +442,6 @@ internal fun HomeTopBarWithStatusPreview() = ElementPreview {
         canReportBug = true,
         displayFilters = true,
         filtersState = aRoomListFiltersState(),
-        spaceFiltersState = anUnselectedSpaceFiltersState(),
         onMenuActionClick = {},
     )
 }
@@ -565,7 +451,6 @@ internal fun HomeTopBarWithStatusPreview() = ElementPreview {
 @Composable
 internal fun HomeTopBarMultiAccountPreview() = ElementPreview {
     HomeTopBar(
-        selectedNavigationItem = HomeNavigationBarItem.Chats,
         currentUserAndNeighbors = aMatrixUserList().take(3).toImmutableList(),
         showAvatarIndicator = false,
         areSearchResultsDisplayed = false,
@@ -576,7 +461,6 @@ internal fun HomeTopBarMultiAccountPreview() = ElementPreview {
         canReportBug = true,
         displayFilters = true,
         filtersState = aRoomListFiltersState(),
-        spaceFiltersState = anUnselectedSpaceFiltersState(),
         onMenuActionClick = {},
     )
 }

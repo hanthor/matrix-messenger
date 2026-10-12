@@ -13,6 +13,8 @@ package io.element.android.features.home.impl.roomlist
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.AndroidComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.assertDoesNotExist
+import androidx.compose.ui.test.assertExists
 import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
@@ -259,6 +261,14 @@ class RoomListViewTest : RobolectricTest() {
             )
         )
     }
+
+    @Test
+    fun `home shows Messages and removes the Spaces tab`() = runAndroidComposeUiTest {
+        setRoomListView(state = aRoomListState())
+
+        onNodeWithText(activity!!.getString(R.string.send_home_title)).assertExists()
+        onNodeWithText(activity!!.getString(R.string.screen_home_tab_spaces)).assertDoesNotExist()
+    }
 }
 
 private fun AndroidComposeUiTest<ComponentActivity>.setRoomListView(
@@ -268,7 +278,6 @@ private fun AndroidComposeUiTest<ComponentActivity>.setRoomListView(
     onSetUpRecoveryClick: () -> Unit = EnsureNeverCalled(),
     onConfirmRecoveryKeyClick: () -> Unit = EnsureNeverCalled(),
     onCreateRoomClick: () -> Unit = EnsureNeverCalled(),
-    onCreateSpaceClick: () -> Unit = EnsureNeverCalled(),
     onRoomSettingsClick: (RoomId) -> Unit = EnsureNeverCalledWithParam(),
     onMenuActionClick: (RoomListMenuAction) -> Unit = EnsureNeverCalledWithParam(),
     onReportRoomClick: (RoomId) -> Unit = EnsureNeverCalledWithParam(),
@@ -282,7 +291,6 @@ private fun AndroidComposeUiTest<ComponentActivity>.setRoomListView(
             onSetUpRecoveryClick = onSetUpRecoveryClick,
             onConfirmRecoveryKeyClick = onConfirmRecoveryKeyClick,
             onStartChatClick = onCreateRoomClick,
-            onCreateSpaceClick = onCreateSpaceClick,
             onRoomSettingsClick = onRoomSettingsClick,
             onMenuActionClick = onMenuActionClick,
             onDeclineInviteAndBlockUser = onDeclineInviteAndBlockUser,

@@ -70,7 +70,7 @@ import io.element.android.libraries.matrix.ui.model.InviteSender
 import io.element.android.libraries.ui.strings.CommonStrings
 import timber.log.Timber
 
-internal val minHeight = 84.dp
+internal val minHeight = 80.dp
 
 @Composable
 internal fun RoomSummaryRow(
@@ -194,7 +194,7 @@ private fun RoomSummaryScaffoldRow(
             .fillMaxWidth()
             .heightIn(min = minHeight)
             .then(clickModifier)
-            .padding(horizontal = 16.dp, vertical = 11.dp)
+            .padding(start = 16.dp, end = 24.dp, vertical = 8.dp)
             .height(IntrinsicSize.Min),
     ) {
         Avatar(
@@ -207,9 +207,10 @@ private fun RoomSummaryScaffoldRow(
                     isTombstoned = room.isTombstoned,
                 )
             },
+            forcedAvatarSize = 52.dp,
             hideImage = hideAvatarImage,
         )
-        Spacer(modifier = Modifier.width(16.dp))
+        Spacer(modifier = Modifier.width(12.dp))
         Column(
             modifier = Modifier.fillMaxWidth(),
             content = content,
@@ -227,7 +228,7 @@ private fun NameAndTimestampRow(
 ) {
     Row(
         modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = spacedBy(16.dp)
+        horizontalArrangement = spacedBy(12.dp)
     ) {
         val displayName = name?.toSafeLength(ellipsize = true) ?: stringResource(id = CommonStrings.common_no_room_name)
         DisplayNameWithStatus(

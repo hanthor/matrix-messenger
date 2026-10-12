@@ -54,8 +54,11 @@ import io.element.android.libraries.testtags.testTag
 import io.element.android.libraries.ui.utils.a11y.isTalkbackActive
 import io.element.android.libraries.ui.utils.graphics.drawInLayer
 
-private val BUBBLE_RADIUS = 12.dp
+private val BUBBLE_RADIUS = 20.dp
+private val BUBBLE_SMALL_RADIUS = 4.dp
 private val avatarRadius = AvatarSize.TimelineSender.dp / 2
+private val SEND_OUTGOING_BUBBLE_LIGHT = Color(0xFFD3E3FD)
+private val SEND_OUTGOING_BUBBLE_DARK = Color(0xFF33485F)
 
 private val MIN_BUBBLE_WIDTH = 80.dp
 
@@ -153,19 +156,19 @@ object MessageEventBubbleDefaults {
         val topLeftCorner = if (cutTopStart) 0.dp else BUBBLE_RADIUS
         return when (groupPosition) {
             TimelineItemGroupPosition.First -> if (isMine) {
-                RoundedCornerShape(BUBBLE_RADIUS, BUBBLE_RADIUS, 0.dp, BUBBLE_RADIUS)
+                RoundedCornerShape(BUBBLE_RADIUS, BUBBLE_RADIUS, BUBBLE_SMALL_RADIUS, BUBBLE_RADIUS)
             } else {
-                RoundedCornerShape(topLeftCorner, BUBBLE_RADIUS, BUBBLE_RADIUS, 0.dp)
+                RoundedCornerShape(topLeftCorner, BUBBLE_RADIUS, BUBBLE_RADIUS, BUBBLE_SMALL_RADIUS)
             }
             TimelineItemGroupPosition.Middle -> if (isMine) {
-                RoundedCornerShape(BUBBLE_RADIUS, 0.dp, 0.dp, BUBBLE_RADIUS)
+                RoundedCornerShape(BUBBLE_RADIUS, BUBBLE_SMALL_RADIUS, BUBBLE_SMALL_RADIUS, BUBBLE_RADIUS)
             } else {
-                RoundedCornerShape(0.dp, BUBBLE_RADIUS, BUBBLE_RADIUS, 0.dp)
+                RoundedCornerShape(BUBBLE_SMALL_RADIUS, BUBBLE_RADIUS, BUBBLE_RADIUS, BUBBLE_SMALL_RADIUS)
             }
             TimelineItemGroupPosition.Last -> if (isMine) {
-                RoundedCornerShape(BUBBLE_RADIUS, 0.dp, BUBBLE_RADIUS, BUBBLE_RADIUS)
+                RoundedCornerShape(BUBBLE_RADIUS, BUBBLE_SMALL_RADIUS, BUBBLE_RADIUS, BUBBLE_RADIUS)
             } else {
-                RoundedCornerShape(0.dp, BUBBLE_RADIUS, BUBBLE_RADIUS, BUBBLE_RADIUS)
+                RoundedCornerShape(BUBBLE_SMALL_RADIUS, BUBBLE_RADIUS, BUBBLE_RADIUS, BUBBLE_RADIUS)
             }
             TimelineItemGroupPosition.None ->
                 RoundedCornerShape(
@@ -180,7 +183,7 @@ object MessageEventBubbleDefaults {
     @Composable
     fun backgroundBubbleColor(isMine: Boolean): Color {
         return if (isMine) {
-            ElementTheme.colors.messageFromMeBackground
+            if (ElementTheme.isLightTheme) SEND_OUTGOING_BUBBLE_LIGHT else SEND_OUTGOING_BUBBLE_DARK
         } else {
             ElementTheme.colors.messageFromOtherBackground
         }
