@@ -10,11 +10,8 @@ package io.element.android.features.home.impl
 
 import com.google.common.truth.Truth.assertThat
 import io.element.android.features.home.impl.roomlist.aRoomListState
-import io.element.android.features.home.impl.spaces.HomeSpacesState
-import io.element.android.features.home.impl.spaces.aHomeSpacesState
 import io.element.android.features.logout.api.direct.aDirectLogoutState
 import io.element.android.features.rageshake.api.RageshakeFeatureAvailability
-import io.element.android.libraries.architecture.Presenter
 import io.element.android.libraries.designsystem.utils.snackbar.SnackbarDispatcher
 import io.element.android.libraries.indicator.api.IndicatorService
 import io.element.android.libraries.indicator.test.FakeIndicatorService
@@ -130,21 +127,6 @@ class HomePresenterTest {
         }
     }
 
-    @Test
-    fun `present - NavigationBar change`() = runTest {
-        val presenter = createHomePresenter(
-            sessionStore = InMemorySessionStore(
-                updateUserProfileResult = { _, _, _ -> },
-            ),
-        )
-        presenter.test {
-            val initialState = awaitItem()
-            assertThat(initialState.currentHomeNavigationBarItem).isEqualTo(HomeNavigationBarItem.Chats)
-            initialState.eventSink(HomeEvent.SelectHomeNavigationBarItem(HomeNavigationBarItem.Spaces))
-            val finalState = awaitItem()
-            assertThat(finalState.currentHomeNavigationBarItem).isEqualTo(HomeNavigationBarItem.Spaces)
-        }
-    }
 }
 
 internal fun createHomePresenter(
@@ -153,7 +135,6 @@ internal fun createHomePresenter(
     snackbarDispatcher: SnackbarDispatcher = SnackbarDispatcher(),
     rageshakeFeatureAvailability: RageshakeFeatureAvailability = RageshakeFeatureAvailability { flowOf(false) },
     indicatorService: IndicatorService = FakeIndicatorService(),
-    homeSpacesPresenter: Presenter<HomeSpacesState> = Presenter { aHomeSpacesState() },
     sessionStore: SessionStore = InMemorySessionStore(),
 ) = HomePresenter(
     client = client,
@@ -161,7 +142,6 @@ internal fun createHomePresenter(
     snackbarDispatcher = snackbarDispatcher,
     indicatorService = indicatorService,
     roomListPresenter = { aRoomListState() },
-    homeSpacesPresenter = homeSpacesPresenter,
     logoutPresenter = { aDirectLogoutState() },
     rageshakeFeatureAvailability = rageshakeFeatureAvailability,
     sessionStore = sessionStore,

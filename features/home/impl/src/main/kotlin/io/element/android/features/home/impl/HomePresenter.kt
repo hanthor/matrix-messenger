@@ -11,16 +11,11 @@ package io.element.android.features.home.impl
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import dev.zacsweers.metro.Inject
 import io.element.android.features.home.impl.roomlist.RoomListState
-import io.element.android.features.home.impl.spaces.HomeSpacesState
 import io.element.android.features.logout.api.direct.DirectLogoutState
 import io.element.android.features.rageshake.api.RageshakeFeatureAvailability
 import io.element.android.libraries.architecture.Presenter
@@ -41,7 +36,6 @@ class HomePresenter(
     private val snackbarDispatcher: SnackbarDispatcher,
     private val indicatorService: IndicatorService,
     private val roomListPresenter: Presenter<RoomListState>,
-    private val homeSpacesPresenter: Presenter<HomeSpacesState>,
     private val logoutPresenter: Presenter<DirectLogoutState>,
     private val rageshakeFeatureAvailability: RageshakeFeatureAvailability,
     private val sessionStore: SessionStore,
@@ -62,13 +56,6 @@ class HomePresenter(
         val isOnline by syncService.isOnline.collectAsState()
         val canReportBug by remember { rageshakeFeatureAvailability.isAvailable() }.collectAsState(false)
         val roomListState = roomListPresenter.present()
-        val homeSpacesState = homeSpacesPresenter.present()
-        var currentHomeNavigationBarItemOrdinal by rememberSaveable { mutableIntStateOf(HomeNavigationBarItem.Chats.ordinal) }
-        val currentHomeNavigationBarItem by remember {
-            derivedStateOf {
-                HomeNavigationBarItem.from(currentHomeNavigationBarItemOrdinal)
-            }
-        }
         LaunchedEffect(Unit) {
             // Force a refresh of the profile
             client.getUserProfile()
@@ -79,9 +66,6 @@ class HomePresenter(
 
         fun handleEvent(event: HomeEvent) {
             when (event) {
-                is HomeEvent.SelectHomeNavigationBarItem -> {
-                    currentHomeNavigationBarItemOrdinal = event.item.ordinal
-                }
                 is HomeEvent.SwitchToAccount -> coroutineState.launch {
                     sessionStore.setLatestSession(event.sessionId.value)
                 }
@@ -93,9 +77,7 @@ class HomePresenter(
             currentUserAndNeighbors = currentUserAndNeighbors,
             showAvatarIndicator = showAvatarIndicator,
             hasNetworkConnection = isOnline,
-            currentHomeNavigationBarItem = currentHomeNavigationBarItem,
             roomListState = roomListState,
-            homeSpacesState = homeSpacesState,
             snackbarMessage = snackbarMessage,
             canReportBug = canReportBug,
             directLogoutState = directLogoutState,

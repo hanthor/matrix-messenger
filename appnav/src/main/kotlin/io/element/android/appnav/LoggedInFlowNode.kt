@@ -48,7 +48,6 @@ import io.element.android.appnav.room.RoomFlowNode
 import io.element.android.appnav.room.RoomNavigationTarget
 import io.element.android.appnav.room.joined.JoinedRoomLoadedFlowNode
 import io.element.android.compound.colors.SemanticColorsLightDark
-import io.element.android.features.createroom.api.CreateRoomEntryPoint
 import io.element.android.features.enterprise.api.EnterpriseService
 import io.element.android.features.enterprise.api.SessionEnterpriseService
 import io.element.android.features.enterprise.api.remoteconfig.CustomMapTilerConfigProvider
@@ -155,7 +154,6 @@ class LoggedInFlowNode(
     snackbarDispatcher: SnackbarDispatcher,
     private val analyticsService: AnalyticsService,
     private val analyticsRoomListStateWatcher: AnalyticsRoomListStateWatcher,
-    private val createRoomEntryPoint: CreateRoomEntryPoint,
     private val activeLiveLocationShareManager: ActiveLiveLocationShareManager,
     private val customMapTilerConfigProvider: CustomMapTilerConfigProvider,
 ) : BaseFlowNode<LoggedInFlowNode.NavTarget>(
@@ -298,8 +296,6 @@ class LoggedInFlowNode(
         @Parcelize
         data object CreateRoom : NavTarget
 
-        @Parcelize
-        data object CreateSpace : NavTarget
 
         @Parcelize
         data class SecureBackup(
@@ -353,9 +349,6 @@ class LoggedInFlowNode(
                         backstack.push(NavTarget.CreateRoom)
                     }
 
-                    override fun navigateToCreateSpace() {
-                        backstack.push(NavTarget.CreateSpace)
-                    }
 
                     override fun navigateToSetUpRecovery() {
                         backstack.push(NavTarget.SecureBackup(initialElement = SecureBackupEntryPoint.InitialTarget.Root))
@@ -525,23 +518,6 @@ class LoggedInFlowNode(
                     buildContext = buildContext,
                     callback = callback,
                 )
-            }
-            is NavTarget.CreateSpace -> {
-                val callback = object : CreateRoomEntryPoint.Callback {
-                    override fun onRoomCreated(roomId: RoomId) {
-                        lifecycleScope.launch {
-                            attachRoom(
-                                roomIdOrAlias = roomId.toRoomIdOrAlias(),
-                                serverNames = emptyList(),
-                                clearBackstack = false,
-                            )
-                        }
-                    }
-                }
-                createRoomEntryPoint
-                    .builder(parentNode = this, buildContext = buildContext, callback = callback)
-                    .setIsSpace(true)
-                    .build()
             }
             is NavTarget.SecureBackup -> {
                 secureBackupEntryPoint.createNode(

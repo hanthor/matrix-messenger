@@ -33,9 +33,6 @@ import io.element.android.features.home.impl.filters.into
 import io.element.android.features.home.impl.search.GlobalSearchState
 import io.element.android.features.home.impl.search.RoomListSearchEvent
 import io.element.android.features.home.impl.search.RoomListSearchState
-import io.element.android.features.home.impl.spacefilters.SpaceFiltersState
-import io.element.android.features.home.impl.spacefilters.into
-import io.element.android.features.home.impl.spacefilters.selectedFilter
 import io.element.android.features.invite.api.SeenInvitesStore
 import io.element.android.features.invite.api.acceptdecline.AcceptDeclineInviteEvent.AcceptInvite
 import io.element.android.features.invite.api.acceptdecline.AcceptDeclineInviteEvent.DeclineInvite
@@ -85,7 +82,6 @@ class RoomListPresenter(
     private val seenInvitesStore: SeenInvitesStore,
     private val announcementService: AnnouncementService,
     private val coldStartWatcher: AnalyticsColdStartWatcher,
-    private val spaceFiltersPresenter: Presenter<SpaceFiltersState>,
     private val globalSearchPresenter: Presenter<GlobalSearchState>,
     private val featureFlagService: FeatureFlagService,
 ) : Presenter<RoomListState> {
@@ -97,7 +93,6 @@ class RoomListPresenter(
         val leaveRoomState = leaveRoomPresenter.present()
         val filtersState = filtersPresenter.present()
         val searchState = searchPresenter.present()
-        val spaceFiltersState = spaceFiltersPresenter.present()
         val acceptDeclineInviteState = acceptDeclineInvitePresenter.present()
         val globalSearchState = globalSearchPresenter.present()
 
@@ -156,11 +151,9 @@ class RoomListPresenter(
             }
         }
 
-        LaunchedEffect(filtersState.filterSelectionStates, spaceFiltersState.selectedFilter()) {
+        LaunchedEffect(filtersState.filterSelectionStates) {
             val selectedFilters = filtersState.selectedFilters().map { filter -> filter.into() }
-            val selectedSpaceFilter = spaceFiltersState.selectedFilter().into()
-            val allFilters = RoomListFilter.All(selectedFilters + listOfNotNull(selectedSpaceFilter))
-            roomListDataSource.updateFilter(allFilters)
+            roomListDataSource.updateFilter(RoomListFilter.All(selectedFilters))
         }
 
         val canReportRoom by produceState(false) { value = client.canReportRoom() }
@@ -181,7 +174,6 @@ class RoomListPresenter(
             filtersState = filtersState,
             searchState = searchState,
             globalSearchState = globalSearchState,
-            spaceFiltersState = spaceFiltersState,
             contentState = contentState,
             acceptDeclineInviteState = acceptDeclineInviteState,
             hideInvitesAvatars = hideInvitesAvatar,
